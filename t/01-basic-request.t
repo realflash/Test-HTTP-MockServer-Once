@@ -5,7 +5,7 @@ use Async;
 
 use_ok('Test::HTTP::MockServer::Once');
 
-my $server = Test::HTTP::MockServer::Once->new();
+my $server = Test::HTTP::MockServer::Once->new(port => 3000);
 my $url = $server->url_base();
 my $ua = LWP::UserAgent->new;
 
