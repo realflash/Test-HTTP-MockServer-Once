@@ -12,6 +12,7 @@ my $builder = Module::Build->new
        'HTTP::Parser' => 0,
        'HTTP::Response' => 0,
        'JSON::XS' => 0,
+       'Storable' => 0
    },
    test_requires => {
        'LWP::UserAgent' => 0,
