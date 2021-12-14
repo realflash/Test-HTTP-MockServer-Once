@@ -1,6 +1,7 @@
 use Test::More;
 use LWP::UserAgent;
 use IO::Handle;
+use Async;
 
 use_ok('Test::HTTP::MockServer::Once');
 
@@ -12,57 +13,65 @@ STDOUT->autoflush(1);
 STDERR->autoflush(1);
 
 my $closed_over_counter;
+my $request;
 my $handle_request_phase1 = sub {
-    my ($request, $response) = @_;
+    $request = shift;
+    my $response = shift;
     $response->content("Phase1: ".$closed_over_counter++)
 };
 
-$server->start_mock_server($handle_request_phase1);
+my $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request_phase1) }, 3);
+my $result = $proc->result('force completion');
+#~ note($proc->error);
+note($proc->result);
+note($request);
+#~ my $res = $ua->get($url);
+#~ is($res->code, 200, 'default response code');
+#~ is($res->message, 'OK', 'default response message');
+#~ is($res->content, 'Phase1: 0', 'got the correct response');
+#~ $res = $ua->get($url);
+#~ is($res->content, 'Phase1: 1', 'got the correct response');
 
-my $res = $ua->get($url);
-is($res->code, 200, 'default response code');
-is($res->message, 'OK', 'default response message');
-is($res->content, 'Phase1: 0', 'got the correct response');
-$res = $ua->get($url);
-is($res->content, 'Phase1: 1', 'got the correct response');
+#~ $server->stop_mock_server();
 
-$server->stop_mock_server();
+TODO: {
+	todo_skip("not reimplemented yet",1);
 
-my $handle_request_phase2 = sub {
-    my ($request, $response) = @_;
-    die "phase2\n";
-};
-$server->start_mock_server($handle_request_phase2);
+	my $handle_request_phase2 = sub {
+		my ($request, $response) = @_;
+		die "phase2\n";
+	};
+	$server->start_mock_server($handle_request_phase2);
 
-$res = $ua->get($url);
-is($res->code, 500, 'error response code');
-is($res->message, 'Internal Server Error', 'error response message');
-is($res->content, "phase2\n", 'got the correct response');
+	$res = $ua->get($url);
+	is($res->code, 500, 'error response code');
+	is($res->message, 'Internal Server Error', 'error response message');
+	is($res->content, "phase2\n", 'got the correct response');
 
-$res = $ua->get($url);
-is($res->code, 500, 'error response code');
-is($res->message, 'Internal Server Error', 'error response message');
-is($res->content, "phase2\n", 'got the correct response');
+	$res = $ua->get($url);
+	is($res->code, 500, 'error response code');
+	is($res->message, 'Internal Server Error', 'error response message');
+	is($res->content, "phase2\n", 'got the correct response');
 
-$server->stop_mock_server();
+	$server->stop_mock_server();
 
-my $handle_request_phase3 = sub {
-    my ($request, $response) = @_;
-    $response->code('204');
-    $response->message('Accepted');
-    $response->header('Content-type' => 'application/json');
-    $response->content('[]');
-};
-$server->start_mock_server($handle_request_phase3);
+	my $handle_request_phase3 = sub {
+		my ($request, $response) = @_;
+		$response->code('204');
+		$response->message('Accepted');
+		$response->header('Content-type' => 'application/json');
+		$response->content('[]');
+	};
+	$server->start_mock_server($handle_request_phase3);
 
-$res = $ua->get($url);
-is($res->code, 204, 'custom response code');
-is($res->message, 'Accepted', 'custom response message');
-is($res->header('Content-type'), 'application/json', 'custom header');
-is($res->content, "[]", 'returned content');
+	$res = $ua->get($url);
+	is($res->code, 204, 'custom response code');
+	is($res->message, 'Accepted', 'custom response message');
+	is($res->header('Content-type'), 'application/json', 'custom header');
+	is($res->content, "[]", 'returned content');
 
-$server->stop_mock_server();
-
+	$server->stop_mock_server();
+}
 
 done_testing();
 

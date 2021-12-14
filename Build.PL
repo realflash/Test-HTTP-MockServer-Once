@@ -15,6 +15,7 @@ my $builder = Module::Build->new
    },
    test_requires => {
        'LWP::UserAgent' => 0,
+       'Async' => 0,
    },
    meta_merge =>
    { resources =>
