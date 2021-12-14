@@ -30,7 +30,6 @@ my $rest = Test::HTTP::MockServer::Once::REST->new(
 }
 
 my $proc = AsyncTimeout->new(sub { $server->start_mock_server($rest->wrap_object(MockApp1->new())) }, 30, "TIMEOUT");
-#~ $server->start_mock_server($rest->wrap_object(MockApp1->new()));
 
 my $res = $ua->get(
 	$url.'/foo/2/bar',
@@ -56,10 +55,6 @@ $proc = AsyncTimeout->new(sub { $server->start_mock_server($rest->wrap_hash({
 	methoda_GET => sub { $mockapp->methoda_GET(@_) },
 	methoda_POST => sub { $mockapp->methoda_POST(@_) },
 })) }, 30, "TIMEOUT");
-#~ $server->start_mock_server($rest->wrap_hash({
-	#~ methoda_GET => sub { $mockapp->methoda_GET(@_) },
-	#~ methoda_POST => sub { $mockapp->methoda_POST(@_) },
-#~ }));
 
 $res = $ua->get(
 	$url.'/foo/2/bar',
