@@ -2,9 +2,9 @@ use Test::More;
 use LWP::UserAgent;
 use IO::Handle;
 
-use_ok('Test::HTTP::MockServer');
+use_ok('Test::HTTP::MockServer::Once');
 
-my $server = Test::HTTP::MockServer->new();
+my $server = Test::HTTP::MockServer::Once->new();
 my $url = $server->url_base();
 my $ua = LWP::UserAgent->new;
 

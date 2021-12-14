@@ -1,4 +1,4 @@
-package Test::HTTP::MockServer::REST;
+package Test::HTTP::MockServer::Once::REST;
 use strict;
 use warnings;
 use JSON::XS;

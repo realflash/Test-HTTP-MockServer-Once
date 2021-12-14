@@ -1,4 +1,4 @@
-package Test::HTTP::MockServer;
+package Test::HTTP::MockServer::Once;
 use strict;
 use warnings;
 use HTTP::Parser;

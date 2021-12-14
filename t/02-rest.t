@@ -2,14 +2,14 @@ use Test::More;
 use LWP::UserAgent;
 use IO::Handle;
 
-use_ok('Test::HTTP::MockServer');
-use_ok('Test::HTTP::MockServer::REST');
+use_ok('Test::HTTP::MockServer::Once');
+use_ok('Test::HTTP::MockServer::Once::REST');
 
-my $server = Test::HTTP::MockServer->new();
+my $server = Test::HTTP::MockServer::Once->new();
 my $url = $server->url_base();
 my $ua = LWP::UserAgent->new;
 
-my $rest = Test::HTTP::MockServer::REST->new(
+my $rest = Test::HTTP::MockServer::Once::REST->new(
     'methoda_GET'  => qr{^GET /foo/([a-z0-9]+)/bar$},
     'methoda_POST' => qr{^POST /foo/([a-z0-9]+)/bar$},
 );

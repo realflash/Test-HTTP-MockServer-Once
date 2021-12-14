@@ -4,10 +4,10 @@ use Module::Build;
 
 my $builder = Module::Build->new
   (
-   dist_name           => 'Test-HTTP-MockServer',
+   dist_name           => 'Test-HTTP-MockServer-Once',
    license             => 'apache',
-   dist_author         => 'Daniel Ruoso <druoso@bloomberg.net>',
-   dist_version_from   => 'lib/Test/HTTP/MockServer.pm',
+   dist_author         => 'Ian Gibbs <igibbs@cpan.net>',
+   dist_version_from   => 'lib/Test/HTTP/MockServerOnce.pm',
    requires  => {
        'HTTP::Parser' => 0,
        'HTTP::Response' => 0,
@@ -19,7 +19,7 @@ my $builder = Module::Build->new
    meta_merge =>
    { resources =>
      { 'repository' =>
-       'https://github.com/bloomberg/Test-HTTP-MockServer'
+       'https://github.com/realflash/Test-HTTP-MockServer-Once'
      },
    },
   );
@@ -27,7 +27,7 @@ $builder->create_build_script();
 
 __END__
 
-Copyright 2016 Bloomberg Finance L.P.
+Copyright 2016 Bloomberg Finance L.P., 2021 Ian Gibbs
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
