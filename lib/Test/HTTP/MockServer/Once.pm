@@ -150,14 +150,6 @@ sub start_mock_server {
     }
 }
 
-sub DESTROY {
-    my $self = shift;
-    eval {
-        $self->stop_mock_server
-          if $self->{mock_server_pid};
-    };
-}
-
 1;
 
 __END__
