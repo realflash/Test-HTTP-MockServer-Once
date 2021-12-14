@@ -16,11 +16,11 @@ STDERR->autoflush(1);
 
 my $request;
 my $handle_request = sub {
-    my $request = shift;
-    my $response = shift;
+	my ($request, $response) = @_;
     $response->content("Hello!");
 };
 
+# 200
 note("Starting web server on ".$server->url_base());
 my $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request) }, 30, "TIMEOUT");
 #~ my $result = $proc->result('force completion');
@@ -33,6 +33,7 @@ is($res->code, 200, 'default response code');
 is($res->message, 'OK', 'default response message');
 is($res->content, 'Hello!', 'got the correct response');
 
+# 500
 my $handle_request_failure = sub {
 	my ($request, $response) = @_;
 	die "Bollocks\n";
@@ -45,26 +46,21 @@ is($res->code, 500, 'error response code');
 is($res->message, 'Internal Server Error', 'error response message');
 is($res->content, "Bollocks\n", 'got the correct response');
 
-TODO: {
-	todo_skip("not reimplemented yet",1);
+# Custom
+my $handle_request_custom = sub {
+	my ($request, $response) = @_;
+	$response->code('204');
+	$response->message('Accepted');
+	$response->header('Content-type' => 'application/json');
+	$response->content('[]');
+};
+$proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request_custom) }, 30, "TIMEOUT");
 
-	my $handle_request_phase3 = sub {
-		my ($request, $response) = @_;
-		$response->code('204');
-		$response->message('Accepted');
-		$response->header('Content-type' => 'application/json');
-		$response->content('[]');
-	};
-	$server->start_mock_server($handle_request_phase3);
-
-	$res = $ua->get($url);
-	is($res->code, 204, 'custom response code');
-	is($res->message, 'Accepted', 'custom response message');
-	is($res->header('Content-type'), 'application/json', 'custom header');
-	is($res->content, "[]", 'returned content');
-
-	$server->stop_mock_server();
-}
+$res = $ua->get($url);
+is($res->code, 204, 'custom response code');
+is($res->message, 'Accepted', 'custom response message');
+is($res->header('Content-type'), 'application/json', 'custom header');
+is($res->content, "[]", 'returned content');
 
 done_testing();
 
