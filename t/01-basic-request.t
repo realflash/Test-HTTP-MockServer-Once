@@ -9,32 +9,29 @@ use_ok('Test::HTTP::MockServer::Once');
 
 my $server = Test::HTTP::MockServer::Once->new(port => 3000);
 my $url = $server->url_base();
-my $ua = LWP::UserAgent->new;
+my $ua = LWP::UserAgent->new(timeout => 1);
 
 STDOUT->autoflush(1);
 STDERR->autoflush(1);
 
-my $closed_over_counter;
 my $request;
-my $handle_request_phase1 = sub {
-    $request = shift;
+my $handle_request = sub {
+    my $request = shift;
     my $response = shift;
-    $response->content("Phase1: ".$closed_over_counter++)
+    $response->content("Hello!");
 };
 
-my $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request_phase1) }, 30, "TIMEOUT");
-my $result = $proc->result('force completion');
-BAIL_OUT "No request received" if($proc->result eq "TIMEOUT");
-my $interaction = thaw $proc->result;
-note("URI: ".$interaction->{request}->uri->as_string);
-#~ my $res = $ua->get($url);
-#~ is($res->code, 200, 'default response code');
-#~ is($res->message, 'OK', 'default response message');
-#~ is($res->content, 'Phase1: 0', 'got the correct response');
-#~ $res = $ua->get($url);
-#~ is($res->content, 'Phase1: 1', 'got the correct response');
+note("Starting web server on ".$server->url_base());
+my $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request) }, 30, "TIMEOUT");
+#~ my $result = $proc->result('force completion');
+#~ BAIL_OUT "No request received" if($proc->result eq "TIMEOUT");
+#~ my $interaction = thaw $proc->result;
+#~ note("URI: ".$interaction->{request}->uri->as_string);
 
-#~ $server->stop_mock_server();
+my $res = $ua->get($url);
+is($res->code, 200, 'default response code');
+is($res->message, 'OK', 'default response message');
+is($res->content, 'Hello!', 'got the correct response');
 
 TODO: {
 	todo_skip("not reimplemented yet",1);
