@@ -2,6 +2,8 @@ use Test::More;
 use LWP::UserAgent;
 use IO::Handle;
 use Async;
+use Storable qw(thaw);
+use Data::Dump qw(dump);
 
 use_ok('Test::HTTP::MockServer::Once');
 
@@ -23,7 +25,7 @@ my $handle_request_phase1 = sub {
 my $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request_phase1) }, 30);
 my $result = $proc->result('force completion');
 #~ note($proc->error);
-note($proc->result);
+note(dump(thaw $proc->result));
 #~ my $res = $ua->get($url);
 #~ is($res->code, 200, 'default response code');
 #~ is($res->message, 'OK', 'default response message');

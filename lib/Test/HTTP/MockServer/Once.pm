@@ -5,7 +5,8 @@ use HTTP::Parser;
 use HTTP::Response;
 use IO::Handle;
 use Socket;
-use JSON::XS;
+use Storable qw(freeze);
+use Data::Dump qw(dump);
 
 our $VERSION = '0.0.1';
 
@@ -29,9 +30,11 @@ sub bind_mock_server {
         if(defined($self->{port}))
         {
 			my $addr = sockaddr_in($self->{port}, $host);
-			bind($s,$addr);
+			print "Address $addr\n";
+			bind($s,$addr) or die $!;
 			listen($s, 10)
 			  or die $!;
+			print "Listening on provided port ".$self->{port}."\n";
 		}
 		else
 		{
@@ -46,6 +49,7 @@ sub bind_mock_server {
 				last;
 			}
 			$self->{port} = $random_port;
+			print "Listening on random port ".$self->{port}."\n";
 		}
         $self->{host} = $host_s;
         $self->{socket} = $s;
@@ -100,6 +104,7 @@ my $client_handle = sub {
     my $client = shift;
     my $parser = HTTP::Parser->new(request => 1);
 
+	my $ret;
     while (1) {
         my $buf;
         # read a byte at a time so we can do a blocking read instead of
@@ -119,9 +124,11 @@ my $client_handle = sub {
         }
         if ($request) {
             my $copy = $request;
+            $ret->{request} = $request;
             $request = undef;
             my $response = $request_handle->($self, $rp, $copy);
             $response->header('Content-length' => length($response->content));
+            $ret->{response} = $response;
             my $strout = "HTTP/1.1 ".($response->as_string("\015\012"));
             $client->print($strout);
             # we don't support keep-alive
@@ -129,6 +136,7 @@ my $client_handle = sub {
         }
         last if $closed;
     }
+    return $ret; 
 };
 
 sub start_mock_server {
@@ -142,11 +150,12 @@ sub start_mock_server {
 	$SIG{TERM} = sub { exit 1; };
 	accept my $client, $self->{socket}
 	  or die "Failed to accept new connections: $!";
+	my $interaction;
 	eval {
-		$client_handle->($self, $rp, $client);
+		$interaction = $client_handle->($self, $rp, $client);
 	};
 	close $client;
-	return encode_json { message => "hello" };
+	return freeze $interaction;
 }
 
 1;
