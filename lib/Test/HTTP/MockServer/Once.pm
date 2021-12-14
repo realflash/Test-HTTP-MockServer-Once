@@ -150,15 +150,6 @@ sub start_mock_server {
     }
 }
 
-sub stop_mock_server {
-    my $self = shift;
-    die "Mock server not started"
-      unless $self->{mock_server_pid};
-    kill 2, $self->{mock_server_pid};
-    waitpid $self->{mock_server_pid}, 0;
-    delete $self->{mock_server_pid};
-}
-
 sub DESTROY {
     my $self = shift;
     eval {
@@ -183,21 +174,20 @@ Test::HTTP::MockServer - Implement a mock HTTP server for use in tests
   my $url = $server->url_base();
   # inject $url as the config for the remote http service.
   
-  my $handle_request_phase1 = sub {
+  my $handle_request_type1 = sub {
       my ($request, $response) = @_;
       ...
   };
-  $server->start_mock_server($handle_request_phase1);
-  # run your tests against $handle_request_phase1
-  $server->stop_mock_server();
+  $server->start_mock_server($handle_request_type1);
+  # run your tests against $handle_request_type1
   
-  my $handle_request_phase2 = sub {
+  my $handle_request_type2 = sub {
       my ($request, $response) = @_;
       ...
   };
-  $server->start_mock_server($handle_request_phase2);
-  # run your tests against $handle_request_phase2
-  $server->stop_mock_server();
+  $server->start_mock_server($handle_request_type2);
+  # run your tests against $handle_request_type2
+  # server stops the moment it has processed one request
 
 =head1 DESCRIPTION
 
