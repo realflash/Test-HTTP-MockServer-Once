@@ -163,32 +163,56 @@ __END__
 
 =head1 NAME
 
-Test::HTTP::MockServer - Implement a mock HTTP server for use in tests
+Test::HTTP::MockServer - Implement a one shot mock HTTP server for use in tests
 
 =head1 SYNOPSIS
 
-  use Test::HTTP::MockServer;
+  use Test::HTTP::MockServer::Once;
+  use Test::More;
   
-  my $server = Test::HTTP::MockServer->new();
+  my $server = Test::HTTP::MockServer::Once->new();
+  my $server = Test::HTTP::MockServer::Once->new(port => 3000);
   my $url = $server->base_url();
-  # inject $url as the config for the remote http service.
+  # this is the listen URL
   
-  my $handle_request_type1 = sub {
+  my $handle_request = sub {
       my ($request, $response) = @_;
       ...
   };
-  $server->start_mock_server($handle_request_type1);
-  # run your tests against $handle_request_type1
+  # This will block until one request is received, and then exit
+  # Fine if you are expecting a call from outside
+  my $interaction = thaw $server->start_mock_server($handle_request);
+  # response contains request and response objects and is a frozen Storable
+  note("URI called: ".$interaction->{request}->uri->as_string);
   
-  my $handle_request_type2 = sub {
-      my ($request, $response) = @_;
-      ...
-  };
-  $server->start_mock_server($handle_request_type2);
-  # run your tests against $handle_request_type2
-  # server stops the moment it has processed one request
+  # If you want to include a timeout rather than wait for ever, use Async  
+  use Async;
+  use Test::HTTP::MockServer::Once;
+  use Test::More;
+  
+  my $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request) }, 30, "TIMEOUT");
+  # wait until the request comes in or it times out
+  my $result = $proc->result('force completion');						
+  BAIL_OUT "No request received" if($proc->result eq "TIMEOUT");
+  my $interaction = thaw $result;
+  note("URI called: ".$interaction->{request}->uri->as_string);
+
+  # Or don't wait for the request if you want to mock that yourself
+  use Async;
+  use Test::HTTP::MockServer::Once;
+  use Test::More;
+  use LWP::UserAgent;
+  
+  my $proc = Async->new(sub { $server->start_mock_server($handle_request) });
+  $ua->get($url);
+  my $interaction = thaw $proc->result;
+  note("URI called: ".$interaction->{request}->uri->as_string);
+  
 
 =head1 DESCRIPTION
+
+Based on L<Test::HTTP::MockServer> but runs once and exits rather than 
+continuing to run.
 
 Sometimes, when writing a test, you don't have to opportunity to do
 dependency injection of the type of transport used in a specific
@@ -197,24 +221,18 @@ and the only control you have is over the host and port to which it
 will connect.
 
 This class offers a simple way to mock the service being called. It
-does that by binding to a random port on localhost and allowing you to
-inspect which port that was. Using a random port means that this can
-be used by tests running in parallel on the same host.
+does that by binding to a random port or specified port on localhost.
+Using a random port means that this can be used by tests running in 
+parallel on the same host. Using a specified port means you can have a
+predictable URL to give as a callback URL when testing OAuth2 and the 
+like.
 
-The socket will be bound and listened on the main test process, such
-that the lifetime of the connection is defined by the lifetime of the
-test itself.
+The socket will be bound and listened on the main test process, then 
+closed after one request has been received. You will need to restart the 
+server for each test call it should receive.
 
-Since the socket will be already bound and listened to, the two
-control methods (start_mock_server and stop_mock_server) fork only
-for the accept call, which means that it is safe to call start and
-stop several times during the test in order to change the expectations
-of the mocked code.
-
-That allows you to easily configure the expectations of the mock
-server across each step of your test case. On the other hand, it also
-means that no state is shared between the code running in the mock
-server and the test code.
+If you want a server to carry on running for multiple tests, see 
+L<Test::HTTP::MockServer>.
 
 =head1 METHODS
 
@@ -222,14 +240,17 @@ server and the test code.
 
 =item new()
 
-Creates a new MockServer object.
+Creates a new MockServer object. Bey default a random local available 
+port will be chosen. To choose a specific port:
+
+  Test::HTTP::MockServer::Once->new(port => 3000);
 
 =item bind_mock_server()
 
-Finds a random available port, bind and listen to it. This allows you
-to inspect what the mock url of the portal will be before the server
-forks to start. If the random port is already in use, it will keep
-trying until it finds one that works.
+Finds a random available port, bind and listen to it, or binds to the 
+specified port if provided. This allows you to inspect what the mock url 
+of the portal will be before the server starts. If the random port is 
+already in use, it will keep trying until it finds one that works.
 
 =item host()
 
@@ -249,20 +270,9 @@ server. It will call bind_mock_server if that was not yet initialized.
 
 =item start_mock_server($request_processor)
 
-This will call bind_mock_server if that was not yet initialized, then
-fork to accept connections.
-
-In order to make it easier to have state propagate across different
-requests in the mock implementation, there will only be one connection
-at a time, and every request in that connection will be handled
-serially.
-
-=item stop_mock_server()
-
-This will kill the server running on the background, but it won't
-unbind the socket, which means that you can just call
-start_mock_server again with a different request_processor and the
-same url will be preserved.
+This will call bind_mock_server if that was not yet initialized. It will 
+not return until exactly one request has been processed. Use with Async 
+as shown in the L<SYNOPSIS> if you want your test to carry on.
 
 =back
 
