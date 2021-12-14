@@ -1,84 +1,87 @@
 use Test::More;
 use LWP::UserAgent;
 use IO::Handle;
+use Async;
 
 use_ok('Test::HTTP::MockServer::Once');
 use_ok('Test::HTTP::MockServer::Once::REST');
 
-TODO: {
-	todo_skip("not reimplemented yet",1);
+my $server = Test::HTTP::MockServer::Once->new();
+my $url = $server->url_base();
+my $ua = LWP::UserAgent->new;
 
-	my $server = Test::HTTP::MockServer::Once->new();
-	my $url = $server->url_base();
-	my $ua = LWP::UserAgent->new;
+my $rest = Test::HTTP::MockServer::Once::REST->new(
+	'methoda_GET'  => qr{^GET /foo/([a-z0-9]+)/bar$},
+	'methoda_POST' => qr{^POST /foo/([a-z0-9]+)/bar$},
+);
 
-	my $rest = Test::HTTP::MockServer::Once::REST->new(
-		'methoda_GET'  => qr{^GET /foo/([a-z0-9]+)/bar$},
-		'methoda_POST' => qr{^POST /foo/([a-z0-9]+)/bar$},
-	);
-
-	{ package MockApp1;
-	  sub new {
-		  return bless {}, __PACKAGE__;
-	  }
-	  sub methoda_GET {
-		  my ($self, $req, $res, $cap, $data) = @_;
-		  return [1,@$cap,3];
-	  }
-	  sub methoda_POST {
-		  my ($self, $req, $res, $cap, $data) = @_;
-		  return [1,@$cap,$data];
-	  }
-	}
-
-	$server->start_mock_server($rest->wrap_object(MockApp1->new()));
-
-	my $res = $ua->get(
-		$url.'/foo/2/bar',
-		'Accept' => 'application/json'
-	);
-	is($res->code, 200, 'default response code');
-	is($res->message, 'OK', 'default response message');
-	is($res->content, '[1,"2",3]', 'got the correct response');
-
-	$res = $ua->post(
-		$url.'/foo/2/bar',
-		'Content-type' => 'application/json',
-		'Accept'       => 'application/json',
-		Content        => '{ "a": "b" }',
-	);
-	is($res->code, 200, 'default response code');
-	is($res->message, 'OK', 'default response message');
-	is($res->content, '[1,"2",{"a":"b"}]', 'got the correct response');
-
-	$server->stop_mock_server();
-
-	my $mockapp = MockApp1->new();
-	$server->start_mock_server($rest->wrap_hash({
-		methoda_GET => sub { $mockapp->methoda_GET(@_) },
-		methoda_POST => sub { $mockapp->methoda_POST(@_) },
-	}));
-
-	$res = $ua->get(
-		$url.'/foo/2/bar',
-		'Accept' => 'application/json'
-	);
-	is($res->code, 200, 'default response code');
-	is($res->message, 'OK', 'default response message');
-	is($res->content, '[1,"2",3]', 'got the correct response');
-
-	$res = $ua->post(
-		$url.'/foo/2/bar',
-		'Content-type' => 'application/json',
-		'Accept'       => 'application/json',
-		Content        => '{ "a": "b" }',
-	);
-	is($res->code, 200, 'default response code');
-	is($res->message, 'OK', 'default response message');
-	is($res->content, '[1,"2",{"a":"b"}]', 'got the correct response');
-
-	$server->stop_mock_server();
+{ package MockApp1;
+  sub new {
+	  return bless {}, __PACKAGE__;
+  }
+  sub methoda_GET {
+	  my ($self, $req, $res, $cap, $data) = @_;
+	  return [1,@$cap,3];
+  }
+  sub methoda_POST {
+	  my ($self, $req, $res, $cap, $data) = @_;
+	  return [1,@$cap,$data];
+  }
 }
+
+my $proc = AsyncTimeout->new(sub { $server->start_mock_server($rest->wrap_object(MockApp1->new())) }, 30, "TIMEOUT");
+#~ $server->start_mock_server($rest->wrap_object(MockApp1->new()));
+
+my $res = $ua->get(
+	$url.'/foo/2/bar',
+	'Accept' => 'application/json'
+);
+is($res->code, 200, 'default response code');
+is($res->message, 'OK', 'default response message');
+is($res->content, '[1,"2",3]', 'got the correct response');
+
+$proc = AsyncTimeout->new(sub { $server->start_mock_server($rest->wrap_object(MockApp1->new())) }, 30, "TIMEOUT");
+$res = $ua->post(
+	$url.'/foo/2/bar',
+	'Content-type' => 'application/json',
+	'Accept'       => 'application/json',
+	Content        => '{ "a": "b" }',
+);
+is($res->code, 200, 'default response code');
+is($res->message, 'OK', 'default response message');
+is($res->content, '[1,"2",{"a":"b"}]', 'got the correct response');
+
+my $mockapp = MockApp1->new();
+$proc = AsyncTimeout->new(sub { $server->start_mock_server($rest->wrap_hash({
+	methoda_GET => sub { $mockapp->methoda_GET(@_) },
+	methoda_POST => sub { $mockapp->methoda_POST(@_) },
+})) }, 30, "TIMEOUT");
+#~ $server->start_mock_server($rest->wrap_hash({
+	#~ methoda_GET => sub { $mockapp->methoda_GET(@_) },
+	#~ methoda_POST => sub { $mockapp->methoda_POST(@_) },
+#~ }));
+
+$res = $ua->get(
+	$url.'/foo/2/bar',
+	'Accept' => 'application/json'
+);
+is($res->code, 200, 'default response code');
+is($res->message, 'OK', 'default response message');
+is($res->content, '[1,"2",3]', 'got the correct response');
+
+$proc = AsyncTimeout->new(sub { $server->start_mock_server($rest->wrap_hash({
+	methoda_GET => sub { $mockapp->methoda_GET(@_) },
+	methoda_POST => sub { $mockapp->methoda_POST(@_) },
+})) }, 30, "TIMEOUT");
+$res = $ua->post(
+	$url.'/foo/2/bar',
+	'Content-type' => 'application/json',
+	'Accept'       => 'application/json',
+	Content        => '{ "a": "b" }',
+);
+is($res->code, 200, 'default response code');
+is($res->message, 'OK', 'default response message');
+is($res->content, '[1,"2",{"a":"b"}]', 'got the correct response');
 
 done_testing();
 
