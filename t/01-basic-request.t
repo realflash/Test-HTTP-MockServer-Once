@@ -33,26 +33,20 @@ is($res->code, 200, 'default response code');
 is($res->message, 'OK', 'default response message');
 is($res->content, 'Hello!', 'got the correct response');
 
+my $handle_request_failure = sub {
+	my ($request, $response) = @_;
+	die "Bollocks\n";
+};
+note("Starting web server on ".$server->url_base());
+$proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request_failure) }, 30, "TIMEOUT");
+
+$res = $ua->get($url);
+is($res->code, 500, 'error response code');
+is($res->message, 'Internal Server Error', 'error response message');
+is($res->content, "Bollocks\n", 'got the correct response');
+
 TODO: {
 	todo_skip("not reimplemented yet",1);
-
-	my $handle_request_phase2 = sub {
-		my ($request, $response) = @_;
-		die "phase2\n";
-	};
-	$server->start_mock_server($handle_request_phase2);
-
-	$res = $ua->get($url);
-	is($res->code, 500, 'error response code');
-	is($res->message, 'Internal Server Error', 'error response message');
-	is($res->content, "phase2\n", 'got the correct response');
-
-	$res = $ua->get($url);
-	is($res->code, 500, 'error response code');
-	is($res->message, 'Internal Server Error', 'error response message');
-	is($res->content, "phase2\n", 'got the correct response');
-
-	$server->stop_mock_server();
 
 	my $handle_request_phase3 = sub {
 		my ($request, $response) = @_;
