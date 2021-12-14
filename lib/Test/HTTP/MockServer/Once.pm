@@ -30,11 +30,9 @@ sub bind_mock_server {
         if(defined($self->{port}))
         {
 			my $addr = sockaddr_in($self->{port}, $host);
-			print "Address $addr\n";
 			bind($s,$addr) or die $!;
 			listen($s, 10)
 			  or die $!;
-			print "Listening on provided port ".$self->{port}."\n";
 		}
 		else
 		{
@@ -49,7 +47,6 @@ sub bind_mock_server {
 				last;
 			}
 			$self->{port} = $random_port;
-			print "Listening on random port ".$self->{port}."\n";
 		}
         $self->{host} = $host_s;
         $self->{socket} = $s;
@@ -155,6 +152,7 @@ sub start_mock_server {
 		$interaction = $client_handle->($self, $rp, $client);
 	};
 	close $client;
+	close $self->{socket};
 	return freeze $interaction;
 }
 

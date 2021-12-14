@@ -24,8 +24,9 @@ my $handle_request_phase1 = sub {
 
 my $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request_phase1) }, 30);
 my $result = $proc->result('force completion');
-#~ note($proc->error);
-note(dump(thaw $proc->result));
+note($proc->error);
+note("raw: ".dump($proc->result));
+note("storable: ".dump(thaw $proc->result));
 #~ my $res = $ua->get($url);
 #~ is($res->code, 200, 'default response code');
 #~ is($res->message, 'OK', 'default response message');
