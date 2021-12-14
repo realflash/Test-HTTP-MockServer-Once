@@ -8,7 +8,7 @@ use Data::Dump qw(dump);
 use_ok('Test::HTTP::MockServer::Once');
 
 my $server = Test::HTTP::MockServer::Once->new(port => 3000);
-my $url = $server->url_base();
+my $url = $server->base_url();
 my $ua = LWP::UserAgent->new(timeout => 1);
 
 STDOUT->autoflush(1);
@@ -21,7 +21,7 @@ my $handle_request = sub {
 };
 
 # 200
-note("Starting web server on ".$server->url_base());
+note("Starting web server on ".$server->base_url());
 my $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request) }, 30, "TIMEOUT");
 #~ my $result = $proc->result('force completion');
 #~ BAIL_OUT "No request received" if($proc->result eq "TIMEOUT");
@@ -38,7 +38,7 @@ my $handle_request_failure = sub {
 	my ($request, $response) = @_;
 	die "Bollocks\n";
 };
-note("Starting web server on ".$server->url_base());
+note("Starting web server on ".$server->base_url());
 $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request_failure) }, 30, "TIMEOUT");
 
 $res = $ua->get($url);

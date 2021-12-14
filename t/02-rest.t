@@ -7,7 +7,7 @@ use_ok('Test::HTTP::MockServer::Once');
 use_ok('Test::HTTP::MockServer::Once::REST');
 
 my $server = Test::HTTP::MockServer::Once->new();
-my $url = $server->url_base();
+my $url = $server->base_url();
 my $ua = LWP::UserAgent->new;
 
 my $rest = Test::HTTP::MockServer::Once::REST->new(
@@ -67,7 +67,7 @@ $res = $ua->get(
 );
 is($res->code, 200, 'default response code');
 is($res->message, 'OK', 'default response message');
-is($res->content, '[1,"2",3]', 'got the correct response');
+is($res->content, '[1,"2",3]', 'got the correct response');s
 
 $proc = AsyncTimeout->new(sub { $server->start_mock_server($rest->wrap_hash({
 	methoda_GET => sub { $mockapp->methoda_GET(@_) },

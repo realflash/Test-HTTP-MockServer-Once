@@ -67,7 +67,7 @@ sub port {
     return $self->{port};
 }
 
-sub url_base {
+sub base_url {
     my $self = shift;
     my $host = $self->host;
     my $port = $self->port;
@@ -170,7 +170,7 @@ Test::HTTP::MockServer - Implement a mock HTTP server for use in tests
   use Test::HTTP::MockServer;
   
   my $server = Test::HTTP::MockServer->new();
-  my $url = $server->url_base();
+  my $url = $server->base_url();
   # inject $url as the config for the remote http service.
   
   my $handle_request_type1 = sub {
