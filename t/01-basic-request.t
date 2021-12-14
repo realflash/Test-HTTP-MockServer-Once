@@ -22,11 +22,11 @@ my $handle_request_phase1 = sub {
     $response->content("Phase1: ".$closed_over_counter++)
 };
 
-my $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request_phase1) }, 30);
+my $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request_phase1) }, 30, "TIMEOUT");
 my $result = $proc->result('force completion');
-note($proc->error);
-note("raw: ".dump($proc->result));
-note("storable: ".dump(thaw $proc->result));
+BAIL_OUT "No request received" if($proc->result eq "TIMEOUT");
+my $interaction = thaw $proc->result;
+note("URI: ".$interaction->{request}->uri->as_string);
 #~ my $res = $ua->get($url);
 #~ is($res->code, 200, 'default response code');
 #~ is($res->message, 'OK', 'default response message');
