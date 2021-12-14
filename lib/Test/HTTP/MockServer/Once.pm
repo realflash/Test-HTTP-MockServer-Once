@@ -5,6 +5,7 @@ use HTTP::Parser;
 use HTTP::Response;
 use IO::Handle;
 use Socket;
+use JSON::XS;
 
 our $VERSION = '0.0.1';
 
@@ -145,7 +146,7 @@ sub start_mock_server {
 		$client_handle->($self, $rp, $client);
 	};
 	close $client;
-	exit 0;
+	return encode_json { message => "hello" };
 }
 
 1;
