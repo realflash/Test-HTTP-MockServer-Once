@@ -25,6 +25,7 @@ sub bind_mock_server {
           or die $!;
         socket my $s, PF_INET, SOCK_STREAM, $proto
           or die $!;
+        setsockopt($s,SOL_SOCKET,SO_REUSEADDR,1) or die "setsockopt: $!"; 
         my $host_s = '127.0.0.1';
         my $host = inet_aton($host_s);
         if(defined($self->{port}))
