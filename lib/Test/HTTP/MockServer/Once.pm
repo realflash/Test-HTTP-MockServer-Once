@@ -9,9 +9,11 @@ use Socket;
 our $VERSION = '0.0.1';
 
 sub new {
-    my ($class) = @_;
+	my ($class, %params) = @_;
     $class = ref $class || $class;
-    return bless {}, $class;
+    return bless {
+		port => $params{port} || undef
+	}, $class;
 }
 
 sub bind_mock_server {
@@ -23,18 +25,29 @@ sub bind_mock_server {
           or die $!;
         my $host_s = '127.0.0.1';
         my $host = inet_aton($host_s);
-        my $port;
-        while (1) {
-            $port = int(rand(5000))+10000;
-            my $addr = sockaddr_in($port, $host);
-            bind($s,$addr)
-              or next;
-            listen($s, 10)
-              or die $!;
-            last;
-        }
+        if(defined($self->{port}))
+        {
+			my $addr = sockaddr_in($self->{port}, $host);
+			bind($s,$addr)
+			  or next;
+			listen($s, 10)
+			  or die $!;
+		}
+		else
+		{
+	        my $random_port;
+			while (1) {
+				$random_port = int(rand(5000))+10000;
+				my $addr = sockaddr_in($random_port, $host);
+				bind($s,$addr)
+				  or next;
+				listen($s, 10)
+				  or die $!;
+				last;
+			}
+			$self->{port} = $random_port;
+		}
         $self->{host} = $host_s;
-        $self->{port} = $port;
         $self->{socket} = $s;
     }
     return 1;
