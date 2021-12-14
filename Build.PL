@@ -29,7 +29,7 @@ $builder->create_build_script();
 
 __END__
 
-Copyright 2016 Bloomberg Finance L.P., 2021 Ian Gibbs
+Copyright 2016 Bloomberg Finance L.P., 2021 on Ian Gibbs
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
