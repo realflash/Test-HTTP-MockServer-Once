@@ -168,6 +168,7 @@ Test::HTTP::MockServer::Once - Implement a one shot mock HTTP server for use in 
 
   use Test::HTTP::MockServer::Once;
   use Test::More;
+  use Storable qw(thaw);
   
   my $server = Test::HTTP::MockServer::Once->new();
   my $server = Test::HTTP::MockServer::Once->new(port => 3000);
@@ -188,6 +189,7 @@ Test::HTTP::MockServer::Once - Implement a one shot mock HTTP server for use in 
   use Async;
   use Test::HTTP::MockServer::Once;
   use Test::More;
+  use Storable qw(thaw);
   
   my $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request) }, 30, "TIMEOUT");
   # wait until the request comes in or it times out
@@ -201,6 +203,7 @@ Test::HTTP::MockServer::Once - Implement a one shot mock HTTP server for use in 
   use Test::HTTP::MockServer::Once;
   use Test::More;
   use LWP::UserAgent;
+  use Storable qw(thaw);
   
   my $proc = Async->new(sub { $server->start_mock_server($handle_request) });
   $ua->get($url);
@@ -239,7 +242,7 @@ L<Test::HTTP::MockServer>.
 
 =item new()
 
-Creates a new MockServer object. Bey default a random local available 
+Creates a new MockServer object. By default a random local available 
 port will be chosen. To choose a specific port:
 
   Test::HTTP::MockServer::Once->new(port => 3000);
