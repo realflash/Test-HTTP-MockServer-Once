@@ -20,7 +20,7 @@ my $handle_request_phase1 = sub {
     $response->content("Phase1: ".$closed_over_counter++)
 };
 
-my $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request_phase1) }, 3);
+my $proc = AsyncTimeout->new(sub { $server->start_mock_server($handle_request_phase1) }, 30);
 my $result = $proc->result('force completion');
 #~ note($proc->error);
 note($proc->result);

@@ -28,8 +28,7 @@ sub bind_mock_server {
         if(defined($self->{port}))
         {
 			my $addr = sockaddr_in($self->{port}, $host);
-			bind($s,$addr)
-			  or next;
+			bind($s,$addr);
 			listen($s, 10)
 			  or die $!;
 		}
@@ -131,34 +130,22 @@ my $client_handle = sub {
     }
 };
 
-my $server_loop = sub {
+sub start_mock_server {
     my $self = shift;
-    my $rp = shift;
+    my $rp = shift or die "No request processor";
+
+	$self->bind_mock_server();
+
+	$DB::signal = 1;
+	$SIG{INT} = sub { exit 1; };
+	$SIG{TERM} = sub { exit 1; };
 	accept my $client, $self->{socket}
 	  or die "Failed to accept new connections: $!";
 	eval {
 		$client_handle->($self, $rp, $client);
 	};
 	close $client;
-};
-
-sub start_mock_server {
-    my $self = shift;
-    my $rp = shift or die "No request processor";
-
-    die "There is already a mock server running"
-      if $self->{mock_server_pid};
-
-    $self->{mock_server_pid} = fork;
-    if ($self->{mock_server_pid}) {
-        return;
-    } else {
-        $DB::signal = 1;
-        $SIG{INT} = sub { exit 1; };
-        $SIG{TERM} = sub { exit 1; };
-        $server_loop->($self,$rp);
-        exit 0;
-    }
+	exit 0;
 }
 
 1;
