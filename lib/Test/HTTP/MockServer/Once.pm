@@ -121,14 +121,12 @@ my $client_handle = sub {
 my $server_loop = sub {
     my $self = shift;
     my $rp = shift;
-    while (1) {
-        accept my $client, $self->{socket}
-          or die "Failed to accept new connections: $!";
-        eval {
-            $client_handle->($self, $rp, $client);
-        };
-        close $client;
-    }
+	accept my $client, $self->{socket}
+	  or die "Failed to accept new connections: $!";
+	eval {
+		$client_handle->($self, $rp, $client);
+	};
+	close $client;
 };
 
 sub start_mock_server {
