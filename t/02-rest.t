@@ -62,7 +62,7 @@ $res = $ua->get(
 );
 is($res->code, 200, 'default response code');
 is($res->message, 'OK', 'default response message');
-is($res->content, '[1,"2",3]', 'got the correct response');s
+is($res->content, '[1,"2",3]', 'got the correct response');
 
 $proc = AsyncTimeout->new(sub { $server->start_mock_server($rest->wrap_hash({
 	methoda_GET => sub { $mockapp->methoda_GET(@_) },

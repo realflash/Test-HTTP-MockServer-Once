@@ -8,11 +8,16 @@ use Data::Dump qw(dump);
 use_ok('Test::HTTP::MockServer::Once');
 
 my $server = Test::HTTP::MockServer::Once->new(port => 3000);
-my $url = $server->base_url();
 my $ua = LWP::UserAgent->new(timeout => 1);
 
 STDOUT->autoflush(1);
 STDERR->autoflush(1);
+
+is($server->port, 3000, "Configuring a specific port works");
+
+$server = Test::HTTP::MockServer::Once->new();
+my $url = $server->base_url();
+ok(defined($server->port), "Not configuring a port works");
 
 my $request;
 my $handle_request = sub {
