@@ -6,7 +6,6 @@ use HTTP::Response;
 use IO::Handle;
 use Socket;
 use Storable qw(freeze);
-use Data::Dump qw(dump);
 
 our $VERSION = '0.0.1';
 

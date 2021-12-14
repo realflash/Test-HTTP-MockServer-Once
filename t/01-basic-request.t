@@ -3,7 +3,6 @@ use LWP::UserAgent;
 use IO::Handle;
 use Async;
 use Storable qw(thaw);
-use Data::Dump qw(dump);
 
 use_ok('Test::HTTP::MockServer::Once');
 
