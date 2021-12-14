@@ -18,6 +18,7 @@ my $builder = Module::Build->new
        'LWP::UserAgent' => 0,
        'Async' => 0,
    },
+   configure_requires => { 'Module::Build' => 0.42 },
    meta_merge =>
    { resources =>
      { 'repository' =>
