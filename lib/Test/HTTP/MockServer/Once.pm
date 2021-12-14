@@ -163,7 +163,7 @@ __END__
 
 =head1 NAME
 
-Test::HTTP::MockServer - Implement a one shot mock HTTP server for use in tests
+Test::HTTP::MockServer::Once - Implement a one shot mock HTTP server for use in tests
 
 =head1 SYNOPSIS
 

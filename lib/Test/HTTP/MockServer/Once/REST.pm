@@ -103,11 +103,11 @@ __END__
 
 =head1 NAME
 
-Test::HTTP::MockServer::REST - REST Helper for Test::HTTP::MockServer
+Test::HTTP::MockServer::Once::REST - REST Helper for Test::HTTP::MockServer::Once
 
 =head1 SYNOPSIS
 
-  my $rest = Test::HTTP::MockServer::REST->new(
+  my $rest = Test::HTTP::MockServer::Once::REST->new(
      'methoda_GET'  => qr{^GET /foo/([a-z0-9]+)/bar$},
      'methoda_POST' => qr{^POST /foo/([a-z0-9]+)/bar$},
   );
@@ -120,7 +120,7 @@ Test::HTTP::MockServer::REST - REST Helper for Test::HTTP::MockServer
 
 =head1 DESCRIPTION
 
-This is a helper class to be used with Test::HTTP::MockServer to
+This is a helper class to be used with Test::HTTP::MockServer::Once to
 easily implement the mock of a REST service, you will provide the
 identifier to the operation and a regex to match the request against.
 
